@@ -1,0 +1,176 @@
+"""
+{{ step.original_text }}
+Generated on: {{ timestamp }}
+"""
+
+import time
+from typing import Dict, Any, Optional, Union
+from equipment import keysight
+from register import register_ops
+
+{% if 'initialize' in step.actions %}
+def initialize_equipment():
+    """Initialize the required equipment"""
+    {% if 'keysight' in step.equipment %}
+    # Initialize Keysight equipment
+    equipment = keysight.initialize()
+    return equipment
+    {% else %}
+    # Generic equipment initialization
+    equipment = {}
+    return equipment
+    {% endif %}
+
+{% endif %}
+{% if 'set' in step.actions %}
+def set_parameters(equipment, **params):
+    """Set parameters on the equipment"""
+    {% if 'voltage' in step.parameters and step.parameters.voltage is not none %}
+    # Set voltage to {{ step.parameters.voltage }}
+    keysight.set_voltage(equipment, {{ step.parameters.voltage }})
+    {% endif %}
+    {% if 'current' in step.parameters and step.parameters.current is not none %}
+    # Set current to {{ step.parameters.current }}
+    keysight.set_current_limit(equipment, {{ step.parameters.current }})
+    {% endif %}
+    {% if 'frequency' in step.parameters and step.parameters.frequency is not none %}
+    # Set frequency to {{ step.parameters.frequency }}
+    keysight.set_frequency(equipment, {{ step.parameters.frequency }})
+    {% endif %}
+    {% if step.addresses %}
+    # Write to registers
+    {% for addr in step.addresses %}
+    register_ops.write_register({{ addr }}, params.get("reg_value_{{ loop.index }}", 0))
+    {% endfor %}
+    {% endif %}
+    return True
+
+{% endif %}
+{% if 'get' in step.actions %}
+def get_measurements(equipment):
+    """Get measurements from the equipment"""
+    results = {}
+    {% if 'voltage' in step.parameters %}
+    # Measure voltage
+    results["voltage"] = keysight.measure_voltage(equipment)
+    {% endif %}
+    {% if 'current' in step.parameters %}
+    # Measure current
+    results["current"] = keysight.measure_current(equipment)
+    {% endif %}
+    {% if 'resistance' in step.parameters %}
+    # Measure resistance
+    results["resistance"] = keysight.measure_resistance(equipment)
+    {% endif %}
+    {% if 'power' in step.parameters %}
+    # Measure power
+    results["power"] = keysight.measure_power(equipment)
+    {% endif %}
+    {% if 'frequency' in step.parameters %}
+    # Measure frequency
+    results["frequency"] = keysight.measure_frequency(equipment)
+    {% endif %}
+    {% if step.addresses %}
+    # Read from registers
+    {% for addr in step.addresses %}
+    results["reg_{{ loop.index }}"] = register_ops.read_register({{ addr }})
+    {% endfor %}
+    {% endif %}
+    return results
+
+{% endif %}
+{% if 'verify' in step.actions %}
+def verify_conditions(measurements, expected_values):
+    """Verify measurements against expected values"""
+    results = {}
+    for key, expected in expected_values.items():
+        if key in measurements:
+            actual = measurements[key]
+            tolerance = expected.get("tolerance", 0.05)
+            min_val = expected["value"] * (1 - tolerance)
+            max_val = expected["value"] * (1 + tolerance)
+            results[key] = {
+                "expected": expected["value"],
+                "actual": actual,
+                "passed": min_val <= actual <= max_val
+            }
+    return results
+
+{% endif %}
+{% if 'wait' in step.actions %}
+def wait_for_condition(equipment, timeout=10.0, interval=0.5):
+    """Wait for a specific condition to be met"""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        {% if 'voltage' in step.parameters or 'current' in step.parameters %}
+        # Check conditions
+        measurements = get_measurements(equipment)
+        {% if 'voltage' in step.parameters and step.parameters.voltage is not none %}
+        if abs(measurements["voltage"] - {{ step.parameters.voltage }}) <= 0.1:
+            return True
+        {% endif %}
+        {% if 'current' in step.parameters and step.parameters.current is not none %}
+        if abs(measurements["current"] - {{ step.parameters.current }}) <= 0.01:
+            return True
+        {% endif %}
+        {% endif %}
+        time.sleep(interval)
+    return False
+
+{% endif %}
+def main():
+    """Main function to execute the test step"""
+    try:
+        {% if 'initialize' in step.actions %}
+        equipment = initialize_equipment()
+        {% else %}
+        # Assuming equipment is already initialized
+        equipment = keysight.get_equipment()
+        {% endif %}
+        
+        {% if 'set' in step.actions %}
+        set_parameters(equipment, 
+                      {% for param, value in step.parameters.items() %}
+                      {% if value is not none %}
+                      {{ param }}={{ value }},
+                      {% endif %}
+                      {% endfor %}
+                      )
+        {% endif %}
+        
+        {% if 'wait' in step.actions %}
+        # Wait for system to stabilize
+        wait_for_condition(equipment)
+        {% endif %}
+        
+        {% if 'get' in step.actions %}
+        # Measure parameters
+        measurements = get_measurements(equipment)
+        print("Measurements:", measurements)
+        {% endif %}
+        
+        {% if 'verify' in step.actions %}
+        # Verify expected values
+        expected_values = {
+            {% for param, value in step.parameters.items() %}
+            {% if value is not none %}
+            "{{ param }}": {"value": {{ value }}, "tolerance": 0.05},
+            {% endif %}
+            {% endfor %}
+        }
+        verification = verify_conditions(measurements, expected_values)
+        print("Verification results:", verification)
+        {% endif %}
+        
+        {% if 'disconnect' in step.actions or 'shutdown' in step.actions %}
+        # Shutdown equipment
+        keysight.shutdown(equipment)
+        {% endif %}
+        
+        return True
+    except Exception as e:
+        print(f"Error executing test step: {e}")
+        return False
+
+if __name__ == "__main__":
+    main()

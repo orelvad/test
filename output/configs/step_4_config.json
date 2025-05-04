@@ -1,0 +1,43 @@
+{
+    "step_info": {
+        "description": "Set register 0x0001 to 0x1234 and verify the write operation.",
+        "timestamp": "2025-05-02 15:43:50",
+        "primary_action": "set"
+    },
+    "register_operations": [
+        {
+            "address": "0x0000",
+            "operation": "read",
+            "expected_value": 0,
+            "mask": "0xFFFF"
+        },
+        {
+            "address": "0x0001",
+            "operation": "write",
+            "value": 1,
+            "expected_value": 1
+        },
+        {
+            "address": "0x1234",
+            "operation": "write",
+            "value": 1,
+            "expected_value": 1
+        }
+    ],
+    "timing": {
+        "delay_before_ms": 0,
+        "delay_after_ms": 0,
+        "timeout_ms": 1000
+    },
+    "verification": {
+        "enabled": true,
+        "retry_count": 3,
+        "retry_delay_ms": 100
+    },
+    "parameters": {
+        "value": {
+            "value": 1
+        },
+        "address": {}
+    }
+}

@@ -1,0 +1,32 @@
+[
+    {
+        "step_number": 1,
+        "description": "Set the Keysight power supply voltage to 3.3V and measure the current.",
+        "code_file": "output\\code\\step_1.py",
+        "config_file": "output\\configs\\step_1_config.json"
+    },
+    {
+        "step_number": 2,
+        "description": "Configure the Keysight equipment to output 5V and 100mA, then verify that the voltage is correct.",
+        "code_file": "output\\code\\step_2.py",
+        "config_file": "output\\configs\\step_2_config.json"
+    },
+    {
+        "step_number": 3,
+        "description": "Read register 0xA000 and check if bit 0 is set.",
+        "code_file": "output\\code\\step_3.py",
+        "config_file": "output\\configs\\step_3_config.json"
+    },
+    {
+        "step_number": 4,
+        "description": "Set register 0x0001 to 0x1234 and verify the write operation.",
+        "code_file": "output\\code\\step_4.py",
+        "config_file": "output\\configs\\step_4_config.json"
+    },
+    {
+        "step_number": 5,
+        "description": "Turn on the Keysight signal generator, set the frequency to 10MHz, and measure the output power.",
+        "code_file": "output\\code\\step_5.py",
+        "config_file": "output\\configs\\step_5_config.json"
+    }
+]

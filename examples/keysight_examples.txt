@@ -1,0 +1,9 @@
+Set the Keysight power supply voltage to 3.3V and measure the current.
+
+Configure the Keysight equipment to output 5V and 100mA, then verify that the voltage is correct.
+
+Read register 0xA000 and check if bit 0 is set.
+
+Set register 0x0001 to 0x1234 and verify the write operation.
+
+Turn on the Keysight signal generator, set the frequency to 10MHz, and measure the output power.

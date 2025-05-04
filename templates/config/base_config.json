@@ -1,0 +1,20 @@
+{
+    "step_info": {
+        "description": "Template description",
+        "timestamp": "",
+        "primary_action": ""
+    },
+    "equipment": {
+        "type": "",
+        "connection": {
+            "interface": "GPIB",
+            "address": "GPIB0::22::INSTR"
+        }
+    },
+    "parameters": {},
+    "register_operations": [],
+    "verification": {
+        "enabled": false,
+        "tolerances": {}
+    }
+}

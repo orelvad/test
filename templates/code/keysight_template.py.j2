@@ -1,0 +1,133 @@
+"""
+{{ step.original_text }}
+Generated on: {{ timestamp }}
+"""
+
+import time
+from typing import Dict, Any, Optional, Union
+from equipment import keysight
+from register import register_ops
+
+def setup_keysight_equipment():
+    """Set up Keysight equipment for testing"""
+    equipment = keysight.initialize()
+    return equipment
+
+{% if 'set' in step.actions %}
+def configure_keysight(equipment, **params):
+    """Configure Keysight equipment with specified parameters"""
+    {% if 'voltage' in step.parameters and step.parameters.voltage is not none %}
+    # Set voltage to {{ step.parameters.voltage }}V
+    keysight.set_voltage(equipment, {{ step.parameters.voltage }})
+    {% endif %}
+    {% if 'current' in step.parameters and step.parameters.current is not none %}
+    # Set current to {{ step.parameters.current }}A
+    keysight.set_current_limit(equipment, {{ step.parameters.current }})
+    {% endif %}
+    {% if 'frequency' in step.parameters and step.parameters.frequency is not none %}
+    # Set frequency to {{ step.parameters.frequency }}Hz
+    keysight.set_frequency(equipment, {{ step.parameters.frequency }})
+    {% endif %}
+    {% if step.addresses %}
+    # Write to registers
+    {% for addr in step.addresses %}
+    register_ops.write_register({{ addr }}, params.get("reg_value_{{ loop.index }}", 0))
+    {% endfor %}
+    {% endif %}
+    return True
+{% endif %}
+
+{% if 'get' in step.actions %}
+def measure_with_keysight(equipment):
+    """Perform measurements using Keysight equipment"""
+    results = {}
+    {% if 'voltage' in step.parameters %}
+    # Measure voltage
+    results["voltage"] = keysight.measure_voltage(equipment)
+    {% endif %}
+    {% if 'current' in step.parameters %}
+    # Measure current
+    results["current"] = keysight.measure_current(equipment)
+    {% endif %}
+    {% if 'power' in step.parameters %}
+    # Calculate power
+    voltage = keysight.measure_voltage(equipment)
+    current = keysight.measure_current(equipment)
+    results["power"] = voltage * current
+    {% endif %}
+    {% if step.addresses %}
+    # Read from registers
+    {% for addr in step.addresses %}
+    results["reg_{{ loop.index }}"] = register_ops.read_register({{ addr }})
+    {% endfor %}
+    {% endif %}
+    return results
+{% endif %}
+
+def main():
+    """Main function to execute the Keysight test step"""
+    try:
+        # Set up Keysight equipment
+        equipment = setup_keysight_equipment()
+        
+        {% if 'set' in step.actions %}
+        # Configure the equipment
+        configure_keysight(equipment, 
+                          {% for param, value in step.parameters.items() %}
+                          {% if value is not none %}
+                          {{ param }}={{ value }},
+                          {% endif %}
+                          {% endfor %}
+                          )
+        {% endif %}
+        
+        {% if 'wait' in step.actions %}
+        # Wait for system to stabilize
+        time.sleep(2.0)
+        {% endif %}
+        
+        {% if 'get' in step.actions %}
+        # Take measurements
+        measurements = measure_with_keysight(equipment)
+        print("Measurements:", measurements)
+        {% endif %}
+        
+        {% if 'verify' in step.actions %}
+        # Verify measurements against expected values
+        expected_values = {
+            {% for param, value in step.parameters.items() %}
+            {% if value is not none %}
+            "{{ param }}": {"value": {{ value }}, "tolerance": 0.05},
+            {% endif %}
+            {% endfor %}
+        }
+        
+        all_passed = True
+        for key, expected in expected_values.items():
+            if key in measurements:
+                actual = measurements[key]
+                tolerance = expected.get("tolerance", 0.05)
+                min_val = expected["value"] * (1 - tolerance)
+                max_val = expected["value"] * (1 + tolerance)
+                passed = min_val <= actual <= max_val
+                all_passed = all_passed and passed
+                print(f"Verification - {key}: Expected {expected['value']}, Got {actual}, {'PASS' if passed else 'FAIL'}")
+        
+        if all_passed:
+            print("All verifications PASSED")
+        else:
+            print("Some verifications FAILED")
+        {% endif %}
+        
+        {% if 'disconnect' in step.actions or 'shutdown' in step.actions %}
+        # Shutdown Keysight equipment
+        keysight.shutdown(equipment)
+        {% endif %}
+        
+        return True
+    except Exception as e:
+        print(f"Error executing Keysight test step: {e}")
+        return False
+
+if __name__ == "__main__":
+    main()

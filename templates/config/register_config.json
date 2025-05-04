@@ -1,0 +1,25 @@
+{
+    "step_info": {
+        "description": "Register operations",
+        "timestamp": "",
+        "primary_action": ""
+    },
+    "register_operations": [
+        {
+            "address": "0x0000",
+            "operation": "read",
+            "expected_value": 0,
+            "mask": "0xFFFF"
+        }
+    ],
+    "timing": {
+        "delay_before_ms": 0,
+        "delay_after_ms": 0,
+        "timeout_ms": 1000
+    },
+    "verification": {
+        "enabled": false,
+        "retry_count": 3,
+        "retry_delay_ms": 100
+    }
+}

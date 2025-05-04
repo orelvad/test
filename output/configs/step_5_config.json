@@ -1,0 +1,42 @@
+{
+    "step_info": {
+        "description": "Turn on the Keysight signal generator, set the frequency to 10MHz, and measure the output power.",
+        "timestamp": "2025-05-02 15:43:50",
+        "primary_action": "set"
+    },
+    "equipment": {
+        "type": "keysight",
+        "model": "",
+        "connection": {
+            "interface": "GPIB",
+            "address": "GPIB0::22::INSTR",
+            "timeout_ms": 5000
+        }
+    },
+    "parameters": {
+        "voltage": {
+            "value": 0.0,
+            "unit": "V",
+            "range": "AUTO"
+        },
+        "current": {
+            "value": 0.0,
+            "unit": "A",
+            "range": "AUTO"
+        },
+        "frequency": {
+            "value": 0.0,
+            "unit": "Hz"
+        },
+        "power": {}
+    },
+    "register_operations": [],
+    "verification": {
+        "enabled": false,
+        "tolerances": {
+            "voltage": 0.05,
+            "current": 0.05,
+            "frequency": 0.01
+        }
+    }
+}

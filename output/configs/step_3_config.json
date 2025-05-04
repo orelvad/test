@@ -1,0 +1,34 @@
+{
+    "step_info": {
+        "description": "Read register 0xA000 and check if bit 0 is set.",
+        "timestamp": "2025-05-02 15:43:50",
+        "primary_action": "set"
+    },
+    "register_operations": [
+        {
+            "address": "0x0000",
+            "operation": "read",
+            "expected_value": 0,
+            "mask": "0xFFFF"
+        },
+        {
+            "address": "0xA000",
+            "operation": "write",
+            "value": 0,
+            "expected_value": 0
+        }
+    ],
+    "timing": {
+        "delay_before_ms": 0,
+        "delay_after_ms": 0,
+        "timeout_ms": 1000
+    },
+    "verification": {
+        "enabled": true,
+        "retry_count": 3,
+        "retry_delay_ms": 100
+    },
+    "parameters": {
+        "address": {}
+    }
+}

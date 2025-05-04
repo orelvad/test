@@ -1,0 +1,50 @@
+"""
+{{ step.original_text }}
+Generated on: {{ timestamp }}
+"""
+
+import time
+from typing import Dict, Any, Optional, Union
+from register import register_ops
+
+def main():
+    """Main function to execute register operations"""
+    try:
+        {% if 'get' in step.actions %}
+        # Read from registers
+        results = {}
+        {% for addr in step.addresses %}
+        # Read from register {{ addr }}
+        value = register_ops.read_register({{ addr }})
+        results["{{ addr }}"] = value
+        print(f"Register {{ addr }} value: {value}")
+        {% endfor %}
+        {% endif %}
+        
+        {% if 'set' in step.actions %}
+        # Write to registers
+        {% for addr in step.addresses %}
+        # Write to register {{ addr }}
+        register_ops.write_register({{ addr }}, {{ step.parameters.get("value", 0) }})
+        print(f"Wrote value {{ step.parameters.get('value', 0) }} to register {{ addr }}")
+        {% endfor %}
+        {% endif %}
+        
+        {% if 'verify' in step.actions %}
+        # Verify register values
+        {% for addr in step.addresses %}
+        # Read and verify register {{ addr }}
+        value = register_ops.read_register({{ addr }})
+        expected = {{ step.parameters.get("value", 0) }}
+        passed = value == expected
+        print(f"Verification - Register {{ addr }}: Expected {expected}, Got {value}, {'PASS' if passed else 'FAIL'}")
+        {% endfor %}
+        {% endif %}
+        
+        return True
+    except Exception as e:
+        print(f"Error executing register operations: {e}")
+        return False
+
+if __name__ == "__main__":
+    main()
